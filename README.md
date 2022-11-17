@@ -1,9 +1,13 @@
 # aribnb
 # `<name of application here>`
 
+
 ## Database Schema Design
 
 `<insert database schema design here>`
+![airbnb](https://user-images.githubusercontent.com/106703196/202575908-75cb3980-c71a-4104-b424-0faa1be96f68.png)
+
+
 
 ## API Documentation
 
