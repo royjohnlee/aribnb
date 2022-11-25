@@ -61,6 +61,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DECIMAL
       },
+      // CREATE A COLUMN FOR avgRating(dec) AND PreviewImages(string)
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

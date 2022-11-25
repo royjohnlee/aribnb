@@ -12,6 +12,7 @@ module.exports = {
     options.tableName = 'Spots';
     return queryInterface.bulkInsert(options, [
       {
+        ownerId: 1,
         address: '1748 circle drive',
         city: "TownsVille",
         state: "California",
@@ -20,10 +21,11 @@ module.exports = {
         name: "A-House",
         lat: 420.69,
         lng: 69.42,
-        description: "big booty mama",
+        description: "AAAA description",
         price: 19.99
       },
       {
+        ownerId: 2,
         address: 'BBBB Address',
         city: "BBBB city",
         state: "BBBB state",
@@ -32,10 +34,11 @@ module.exports = {
         name: "B-House",
         lat: 222420.69,
         lng: 22269.420,
-        description: "BBBB big booty mama",
+        description: "BBBB description",
         price: 22219.99
       },
       {
+        ownerId: 3,
         address: 'CCC Address',
         city: "CCC city",
         state: "CCC state",
@@ -44,7 +47,7 @@ module.exports = {
         name: "C-House",
         lat: 333420.69,
         lng: 33369.420,
-        description: "CCC big booty mama",
+        description: "CCCC description",
         price: 33319.99
       },
     ], {});
@@ -52,9 +55,7 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     options.tableName = 'Spots';
-    const Op = Sequelize.Op;
-    return queryInterface.bulkDelete(options, {
-      username: { [Op.in]: ['Demo-lition', 'FakeUser1', 'FakeUser2'] }
-    }, {});
+    // const Op = Sequelize.Op;
+    return queryInterface.bulkDelete(options, {}, {});
   }
 };

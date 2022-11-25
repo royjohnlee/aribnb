@@ -1,6 +1,7 @@
+
 'use strict';
 const {
-  Model, Validator
+  Model,
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Spot extends Model {
@@ -18,7 +19,6 @@ module.exports = (sequelize, DataTypes) => {
       Spot.hasMany(models.Review, { foreignKey: "spotId", onDelete: 'CASCADE' }); // review
 
       Spot.hasMany(models.SpotImage, { foreignKey: "spotId", onDelete: 'CASCADE' }); // spot image
-
     }
   }
   Spot.init({
@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Spot',
+    // defaultScope: {
+    //   attributes: {
+    //     exclude: ["createdAt", "updatedAt"]
+    //   }
+    // },
   });
   return Spot;
 };

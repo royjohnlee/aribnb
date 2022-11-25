@@ -23,7 +23,6 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       url: {
-        allowNull: false,
         unique: true,
         type: Sequelize.STRING
       },
