@@ -1,9 +1,16 @@
 const express = require('express');
+const { setTokenCookie, requireAuth } = require('../../utils/auth');
 const { Spot, Review, SpotImage } = require('../../db/models');
 const router = express.Router();
 
 
-// GET all Spots
+//GET Spots of CURRENT User
+router.get('/current', requireAuth, async (req, res) => {
+    console.log(Spot)
+})
+
+
+// GET all Spots  =========================================================================================
 router.get('/', async (req, res) => {
     const spots = await Spot.findAll({
         include: [
@@ -32,7 +39,7 @@ router.get('/', async (req, res) => {
             count++
         })
         const avgStarsPerSpot = starTotalSum / count
-        console.log("average review Id: ", avgStarsPerSpot)
+        // console.log("average review Id: ", avgStarsPerSpot)
         spot.avgRating = avgStarsPerSpot
         delete spot.Reviews
     })
@@ -51,38 +58,88 @@ router.get('/', async (req, res) => {
     return res.json({ "Spots": spotListArr })
 });
 
+// CREATE an Image for a Spot =========================================================================================
+router.post('/:spotId/images', requireAuth, async (req, res) => {
 
-// requireAuth
+    const { url, preview } = req.body
+    const spot = await Spot.findByPk(req.params.spotId)
+
+    console.log("===============================================")
+    console.log(spot)
+
+    if (!spot) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    }
+
+    const spotId = spot.id
+
+    // console.log("===============================================")
+    // console.log(spotId)
+
+    const newSpotImage = await SpotImage.create({
+        spotId,
+        url,
+        preview
+    })
+
+    // console.log("ahoeuthaoeut", newSpotImage)
+
+    return res.json({ "id": newSpotImage.id, "url": newSpotImage.url, "preview": newSpotImage.preview })
+});
 
 
-// router.get('/current', requireAuth, async (req, res) => {
-
-//     const spots = await Spot.findbyPk({
-//         include: [
-//             {
-//                 model: Review
-//             },
-//             {
-//                 model: SpotImage
-//             }
-//         ]
-//     });
-//     console.log(spots)
-//     return res.json(spots)
-// })
 
 
+// CREATE a SPOT  ====================================================================================================
+router.post('/', requireAuth, async (req, res) => {
+    const { address, city, state, country, lat, lng, name, description, price } = req.body
+    const dataArr = [address, city, state, country, lat, lng, name, description, price]
+
+    console.log("DATA USER VALUE ID", req.user.dataValues.id)
 
 
-// Get details of a Spot from an id
-// router.get('/:spotId', async (req, res) => {
-//     const Spots = await Spot.findAll()
+    dataArr.forEach(data => {
+        if (!data) {
+            res.json({
+                message: "Validation Error",
+                statusCode: 400,
+                errors: {
+                    address: "Street address is required",
+                    city: "City is required",
+                    state: "State is required",
+                    country: "Country is required",
+                    lat: "Latitude is not valid",
+                    lng: "Longitude is not valid",
+                    name: "Name must be less than 50 characters",
+                    description: "Description is required",
+                    price: "Price per day is required"
+                }
+            });
+        }
+    });
+
+    const newSpot = await Spot.create({
+        ownerId: req.user.dataValues.id,
+        address,
+        city,
+        state,
+        country,
+        lat,
+        lng,
+        name,
+        description,
+        price
+    })
+
+    return res.json(newSpot)
+
+})
 
 
-//     res.json({})
-// });
-
-// GET all Spot owned by Current User
 
 
 
