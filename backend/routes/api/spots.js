@@ -1,18 +1,125 @@
 const express = require('express');
 const { setTokenCookie, requireAuth } = require('../../utils/auth');
-const { Spot, Review, SpotImage } = require('../../db/models');
+const { User, Spot, Review, SpotImage } = require('../../db/models');
+const { json } = require('sequelize');
 const router = express.Router();
+
 
 
 //GET Spots of CURRENT User
 router.get('/current', requireAuth, async (req, res) => {
-    console.log(Spot)
+    const userId = req.user.id
+
+    let currSpot = await Spot.findAll({
+        include: [
+            {
+                model: Review
+            },
+            {
+                model: SpotImage
+            }
+        ],
+        where: {
+            ownerId: userId
+        }
+    })
+    currSpot = JSON.parse(JSON.stringify(currSpot))
+    // console.log("currSpot", currSpot)
+
+
+    currSpot.forEach((spot) => {
+        const reviewArr = spot.Reviews
+        let starTotalSum = 0;
+        let count = 0;
+
+        console.log(spot.Reviews)
+        reviewArr.forEach((review) => {
+            starTotalSum += review
+            count++
+        });
+
+        const avgStarsPerSpot = starTotalSum / count
+
+        spot.avgRating = avgStarsPerSpot
+        delete spot.Reviews
+    })
+
+    currSpot.forEach((spot) => {
+        spot.SpotImages.forEach(image => {
+            if (image.preview) {
+                spot.previewImage = image.url
+            } else {
+                spot.previewImage = "needs an image"
+            }
+            delete spot.SpotImages
+        })
+    })
+    return res.json({ "Spots": currSpot })
 })
 
 
-// GET all Spots  =========================================================================================
+// GET details of a Spot from an id
+router.get('/:spotId', async (req, res) => {
+
+    let spot = await Spot.findByPk(req.params.spotId, {
+        include: [
+            {
+                model: Review
+            },
+            {
+                model: SpotImage
+            },
+            {
+                model: User,
+                as: "Owner",
+            }
+        ]
+    });
+
+    if (!spot) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    };
+
+    spot = JSON.parse(JSON.stringify(spot))
+
+    const reviewsArr = spot.Reviews
+
+    let starTotalSum = 0;
+    let count = 0;
+    reviewsArr.forEach((review) => {
+        starTotalSum += review
+        count++
+    });
+
+    delete spot.Reviews
+    console.log("SpotImage:  ", spot.SpotImages);
+
+
+    const avgStarsPerSpot = starTotalSum / count;
+
+    spot.numReviews = count;
+    spot.avgRating = avgStarsPerSpot;
+
+    const SImage = spot.SpotImages;
+    SImage.forEach((image) => {
+        delete image.spotId
+        delete image.createdAt
+        delete image.updatedAt
+    });
+
+    delete spot.Owner.username;
+
+    return res.json(spot);
+})
+
+
+// GET all Spots
 router.get('/', async (req, res) => {
-    const spots = await Spot.findAll({
+    let spots = await Spot.findAll({
         include: [
             {
                 model: Review
@@ -58,7 +165,7 @@ router.get('/', async (req, res) => {
     return res.json({ "Spots": spotListArr })
 });
 
-// CREATE an Image for a Spot =========================================================================================
+// CREATE an Image for a Spot
 router.post('/:spotId/images', requireAuth, async (req, res) => {
 
     const { url, preview } = req.body
@@ -94,7 +201,7 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
 
 
 
-// CREATE a SPOT  ====================================================================================================
+// CREATE a SPOT
 router.post('/', requireAuth, async (req, res) => {
     const { address, city, state, country, lat, lng, name, description, price } = req.body
     const dataArr = [address, city, state, country, lat, lng, name, description, price]
@@ -136,6 +243,11 @@ router.post('/', requireAuth, async (req, res) => {
     })
 
     return res.json(newSpot)
+
+})
+
+// EDIT a Spot
+router.put('/:spotId', requireAuth, async (req, res) => {
 
 })
 
