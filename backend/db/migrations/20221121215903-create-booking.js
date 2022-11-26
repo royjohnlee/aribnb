@@ -30,10 +30,12 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       startDate: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        //  unique: true, ask TYLER
       },
       endDate: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        // unique: true, ask TYLER
       },
       createdAt: {
         allowNull: false,
