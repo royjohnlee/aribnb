@@ -1,9 +1,44 @@
 const express = require('express');
 const { setTokenCookie, requireAuth } = require('../../utils/auth');
-const { User, Spot, Review, SpotImage } = require('../../db/models');
+const { User, Spot, Review, SpotImage, ReviewImage } = require('../../db/models');
 
 const router = express.Router();
 
+
+// get Reviews by SpotId
+router.get('/:spotId/reviews', async (req, res) => {
+    const spotId = req.params.spotId
+
+    // console.log("HETOUHNETSHUsn")
+    // console.log(typeof spotId)
+
+    let currReview = await Review.findAll({
+        include: [
+            { model: User },
+            { model: Spot },
+            { model: ReviewImage }
+        ], where: {
+            spotId: +spotId
+        }
+    })
+
+    currReview = JSON.parse(JSON.stringify(currReview))
+
+    currReview.forEach((review) => {
+        delete review.User.username
+
+        delete review.Spot.description
+        delete review.Spot.createdAt
+        delete review.Spot.updatedAt
+
+        review.ReviewImages.forEach((image) => {
+            delete image.reviewId
+            delete image.createdAt
+            delete image.updatedAt
+        });
+    });
+    return res.json({ "Review": currReview })
+});
 
 
 //GET Spots of CURRENT User

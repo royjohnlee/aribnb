@@ -9,7 +9,7 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
 
     const { url } = req.body
 
-    const review = await Review.findByPk(req.params.reviewId, {
+    const review = await Review.findByPk(+req.params.reviewId, {
         include: [{ model: ReviewImage }]
     })
 
