@@ -9,6 +9,15 @@ const router = express.Router();
 router.get('/:spotId/reviews', async (req, res) => {
     const spotId = req.params.spotId
 
+    let spot = await Spot.findByPk(req.params.spotId)
+
+    if (!spot) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    };
     // console.log("HETOUHNETSHUsn")
     // console.log(typeof spotId)
 
