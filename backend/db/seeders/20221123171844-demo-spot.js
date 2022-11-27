@@ -17,9 +17,9 @@ module.exports = {
         city: "TownsVille",
         state: "California",
         country: "USA",
+        name: "A-House",
         lat: 420.69,
         lng: 69.42,
-        name: "A-House",
         description: "AAAA description",
         price: 19.99
       },
@@ -29,9 +29,9 @@ module.exports = {
         city: "BBBB city",
         state: "BBBB state",
         country: " BBBB USA",
+        name: "B-House",
         lat: 222420.69,
         lng: 22269.420,
-        name: "B-House",
         description: "BBBB description",
         price: 22219.99
       },
@@ -41,9 +41,9 @@ module.exports = {
         city: "CCC city",
         state: "CCC state",
         country: "CCC USA",
+        name: "C-House",
         lat: 333420.69,
         lng: 33369.420,
-        name: "C-House",
         description: "CCCC description",
         price: 33319.99
       },
