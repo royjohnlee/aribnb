@@ -1,0 +1,15 @@
+  CreateASpot[m
+  auth-setup[m
+* [32mcreate-review-and-image[m
+  database[m
+  database-seeder[m
+  dev[m
+  edit-a-Spot[m
+  get-all-spots[m
+  get-session[m
+  login[m
+  logout[m
+  main[m
+  signup[m
+  validate-login-inputs[m
+  validate-signup-inputs[m
