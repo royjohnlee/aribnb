@@ -46,6 +46,43 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
 
 router.get('/current', requireAuth, async (req, res) => {
     const userId = req.user.id
+    console.log(userId)
+
+    let currReview = await Review.findAll({
+        include: [
+            {
+                model: User
+            },
+            {
+                model: Spot
+            },
+            {
+                model: ReviewImage
+            }
+        ],
+        where: {
+            userId: userId
+        }
+    })
+
+    currReview = JSON.parse(JSON.stringify(currReview))
+
+    // console.log(currReview[0])
+    currReview.forEach(review => {
+        delete review.Spot.description
+        delete review.Spot.createdAt
+        delete review.Spot.updatedAt
+
+        delete review.User.username
+
+        review.ReviewImages.forEach((image) => {
+            // console.log(image.reviewId)
+            delete image.reviewId
+            delete image.createdAt
+            delete image.updatedAt
+        })
+    });
+    return res.json({ "Reviews": currReview })
 });
 
 
