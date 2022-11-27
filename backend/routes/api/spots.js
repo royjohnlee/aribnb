@@ -200,6 +200,15 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
     return res.json({ "id": newSpotImage.id, "url": newSpotImage.url, "preview": newSpotImage.preview })
 });
 
+//Creat a Review for a Spot
+router.post('/spots/:spotId/reviews', requireAuth, async (req, res) => {
+    const spot = await Spot.findByPk(req.params.spotId)
+    const { review, stars } = req.body
+
+    console.log(spot)
+    console.log(req.body)
+})
+
 
 // CREATE a SPOT
 router.post('/', requireAuth, async (req, res) => {
@@ -293,11 +302,9 @@ router.put('/:spotId', requireAuth, async (req, res) => {
             price: price
         }
     )
-
     spot = JSON.parse(JSON.stringify(spot))
     return res.json(spot)
 })
-
 
 
 
