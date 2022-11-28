@@ -1,19 +1,58 @@
 const express = require('express');
 const { setTokenCookie, requireAuth, restoreUser } = require('../../utils/auth');
 const { User, Spot, Review, SpotImage, ReviewImage, Booking } = require('../../db/models');
-const booking = require('../../db/models/booking');
+
 
 const router = express.Router();
 
 //Get All Bookings for a Spot By Id
 router.get('/:spotId/bookings', requireAuth, async (req, res) => {
-    // const spotId = +req.params.spotId
+    const spotId = +req.params.spotId
+    const userId = req.user.dataValues.id
 
-    // console.log("aoeutnhoeahtousea", spotId)
+    console.log(spotId)
+    console.log(userId)
 
-    // let SpotIdBooking = await Spot.findByPk(spotId, {
-    //     include: [{ model: User }],
-    // })
+    let spotCheck = await Spot.findByPk(spotId)
+    if (!spotCheck) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    }
+
+    let SpotIdBooking = await Booking.findAll({
+        include: [{
+            model: User
+        }, {
+            model: Spot,
+            require: true
+        }
+        ],
+        where: { spotId: spotId }
+    })
+
+
+
+    SpotIdBooking = JSON.parse(JSON.stringify(SpotIdBooking))
+
+    SpotIdBooking.forEach((booking) => {
+        delete booking.User.username
+
+        if (userId !== booking.Spot.ownerId) {
+            delete booking.id
+            delete booking.userId
+            delete booking.createdAt
+            delete booking.updatedAt
+            delete booking.User
+        }
+        delete booking.Spot
+    })
+
+
+
+    return res.json({ "Bookings": SpotIdBooking })
 
     // if (!spotId) {
     //     res.status(404)
@@ -22,7 +61,6 @@ router.get('/:spotId/bookings', requireAuth, async (req, res) => {
     //         "statusCode": 404
     //     })
     // }
-    // SpotIdBooking = JSON.parse(JSON.stringify(SpotIdBooking))
 
     // SpotIdBooking.forEach(booking => {
     //     delete booking.User.username
@@ -252,7 +290,6 @@ router.post('/:spotId/bookings', requireAuth, async (req, res) => {
     console.log(bookings)
     console.log(startDate)
     console.log(endDate)
-
 
 
     bookings = JSON.parse(JSON.stringify(bookings))
