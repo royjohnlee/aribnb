@@ -138,4 +138,40 @@ router.put('/:reviewId', requireAuth, async (req, res) => {
     return res.json(reviewTable)
 });
 
+
+router.delete('/:reviewId', requireAuth, async (req, res) => {
+    const reviewId = +req.params.reviewId
+    const userId = req.user.dataValues.id
+
+    console.log("user Id:", userId)
+    console.log("review Id:", reviewId)
+
+    const currReview = await Review.findOne({ where: { id: reviewId } })
+
+    console.log(currReview)
+
+    if (!currReview) {
+        res.status(404)
+        return res.json({
+            "message": "Review couldn't be found",
+            "statusCode": 404
+        })
+    }
+
+    if (userId !== currReview.userId) {
+        res.status(403)
+        return res.json({
+            "message": "Review must belong to the current user"
+        })
+    }
+    console.log("Hi")
+
+    await currReview.destroy();
+
+    res.status(200)
+    return res.json({
+        "message": "Successfully deleted",
+        "statusCode": 200
+    })
+});
 module.exports = router;

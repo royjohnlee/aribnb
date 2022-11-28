@@ -329,7 +329,7 @@ router.post('/:spotId/bookings', requireAuth, async (req, res) => {
         console.log(bookings[i].endDate, endDate)
         console.log(bookings[i].endDate >= endDate)
         console.log(bookings[i].endDate <= endDate)
-        console.log((bookings[i].endDate >= endDate && bookings[i].endDate <= endDate))
+        console.log(bookings[i].endDate >= endDate && bookings[i].endDate <= endDate)
 
         console.log("--------------------------------------------")
 
@@ -554,6 +554,37 @@ router.put('/:spotId', requireAuth, async (req, res) => {
 
 
 
+router.delete('/:spotId', requireAuth, async (req, res) => {
+    const spotId = +req.params.spotId
+    const userId = req.user.dataValues.id
+
+    const currSpot = await Spot.findOne({
+        where: { id: spotId }
+    })
+    if (!currSpot) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    }
+
+    if (userId !== currSpot.ownerId) {
+        res.status(403)
+        return res.json({
+            "message": "Spot must belong to the current user"
+        })
+    }
+    console.log(currSpot)
+
+    await currSpot.destroy()
+
+    res.status(200)
+    return res.json({
+        "message": "Successfully deleted",
+        "statusCode": 200
+    })
+})
 
 
 module.exports = router;

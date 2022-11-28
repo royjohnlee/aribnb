@@ -81,7 +81,6 @@ router.delete('/:bookingId', requireAuth, async (req, res) => {
     const userId = req.user.dataValues.id
     const bookingId = +req.params.bookingId
 
-    console.log(userId, "oaeu", bookingId)
 
     const currBooking = await Booking.findOne({ where: { id: bookingId } })
 
