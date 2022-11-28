@@ -24,7 +24,8 @@ router.delete('/:imageId', requireAuth, async (req, res) => {
     if (userId !== spotCheck.ownerId) {
         res.status(403)
         return res.json({
-            "message": "Spot must belong to the current user"
+            "message": "Spot must belong to the current user",
+            "statusCode": 403
         })
     }
 
