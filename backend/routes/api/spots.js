@@ -87,7 +87,7 @@ router.get('/:spotId/reviews', async (req, res) => {
     let currReview = await Review.findAll({
         include: [
             { model: User },
-            { model: Spot },
+            // { model: Spot },
             { model: ReviewImage }
         ], where: {
             spotId: +spotId
@@ -99,9 +99,9 @@ router.get('/:spotId/reviews', async (req, res) => {
     currReview.forEach((review) => {
         delete review.User.username
 
-        delete review.Spot.description
-        delete review.Spot.createdAt
-        delete review.Spot.updatedAt
+        // delete review.Spot.description
+        // delete review.Spot.createdAt
+        // delete review.Spot.updatedAt
 
         review.ReviewImages.forEach((image) => {
             delete image.reviewId
@@ -298,7 +298,7 @@ router.post('/:spotId/bookings', requireAuth, async (req, res) => {
 
 
     bookings = JSON.parse(JSON.stringify(bookings))
-    // console.log(bookings)
+    console.log(bookings)
 
     if (startDate > endDate) {
         res.status(404)
@@ -321,11 +321,19 @@ router.post('/:spotId/bookings', requireAuth, async (req, res) => {
 
 
     for (let i = 0; i < bookings.length; i++) {
+        console.log(bookings[i].startDate, startDate)
         console.log(bookings[i].startDate >= startDate)
         console.log(bookings[i].startDate <= startDate)
+        console.log((bookings[i].startDate >= startDate && bookings[i].startDate <= startDate))
+
+        console.log(bookings[i].endDate, endDate)
+        console.log(bookings[i].endDate >= endDate)
+        console.log(bookings[i].endDate <= endDate)
+        console.log((bookings[i].endDate >= endDate && bookings[i].endDate <= endDate))
+
         console.log("--------------------------------------------")
 
-        if (!(bookings[i].startDate >= startDate && bookings[i].startDate <= startDate)) {
+        if ((bookings[i].startDate >= startDate && bookings[i].startDate <= startDate)) {
             res.status(403)
             return res.json({
                 "message": "Sorry, this spot is already booked for the specified dates",

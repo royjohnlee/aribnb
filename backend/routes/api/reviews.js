@@ -1,6 +1,6 @@
 const express = require('express');
 const { setTokenCookie, requireAuth } = require('../../utils/auth');
-const { User, Spot, Review, ReviewImage } = require('../../db/models');
+const { User, Spot, Review, ReviewImage, SpotImage } = require('../../db/models');
 
 const router = express.Router();
 
@@ -35,7 +35,6 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
     }
 
     const reviewId = review.id
-
     const newReviewImage = await ReviewImage.create({
         reviewId,
         url
@@ -55,7 +54,11 @@ router.get('/current', requireAuth, async (req, res) => {
                 model: User
             },
             {
-                model: Spot
+                model: Spot, include: [{
+                    model: SpotImage,
+                    where: { preview: true },
+                    attributes: ["url"]
+                }]
             },
             {
                 model: ReviewImage
@@ -68,12 +71,17 @@ router.get('/current', requireAuth, async (req, res) => {
 
     currReview = JSON.parse(JSON.stringify(currReview))
 
-    // console.log(currReview[0])
+
+
+    console.log(currReview[0].Spot)
     currReview.forEach(review => {
         delete review.Spot.description
         delete review.Spot.createdAt
         delete review.Spot.updatedAt
 
+        review.Spot.preview = review.Spot.SpotImages[0].url
+
+        delete review.Spot.SpotImages
         delete review.User.username
 
         review.ReviewImages.forEach((image) => {
@@ -86,10 +94,11 @@ router.get('/current', requireAuth, async (req, res) => {
     return res.json({ "Reviews": currReview })
 });
 
+//Edit a Review
 router.put('/:reviewId', requireAuth, async (req, res) => {
 
     const { review, stars } = req.body
-    console.log(req.body)
+    // console.log(req.body)
     const dataArr = [review, stars]
 
     let reviewTable = await Review.findByPk(req.params.reviewId)
