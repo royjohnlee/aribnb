@@ -5,26 +5,36 @@ const { User, Spot, Booking, SpotImage } = require('../../db/models');
 const router = express.Router();
 
 // Edit a Booking
-// router.put('/:bookingId', requireAuth, async (req, res) => {
-//     const bookingId = req.params.bookingId
+router.put('/:bookingId', requireAuth, async (req, res) => {
+    const bookingId = req.params.bookingId
+    const bookingCheck = await Booking.findByPk(bookingId)
 
-//     console.log(bookingId)
+    console.log(bookingId)
 
-//     const { startDate, endDate } = req.body
-//     const dataArr = [startDate, endDate]
+    const { startDate, endDate } = req.body
+    const dataArr = [startDate, endDate]
 
-//     if (endDate < startDate) {
-//         res.json({
-//             message: "Validation error",
-//             statusCode: 400,
-//             errors: {
-//                 endDate: "endDate cannot come before startDate"
-//             }
-//         })
-//     }
+    if (endDate < startDate) {
+        res.json({
+            message: "Validation error",
+            statusCode: 400,
+            errors: {
+                endDate: "endDate cannot come before startDate"
+            }
+        })
+    }
+    if (!bookingCheck) {
+        res.json({
+            message: "Booking couldn't be found",
+            statusCode: 404,
+        })
+    }
 
-//     let booking = await Booking.findByPk(req.params.bookingId)
-// });
+    let booking = await Booking.findByPk(req.params.bookingId)
+
+    return res.json(booking)
+
+});
 
 router.get('/current', requireAuth, async (req, res) => {
     const userId = req.user.id
