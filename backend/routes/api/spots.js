@@ -140,15 +140,17 @@ router.get('/current', requireAuth, async (req, res) => {
         let starTotalSum = 0;
         let count = 0;
 
-        console.log(spot.Reviews)
+        // console.log(spot.Reviews)
         reviewArr.forEach((review) => {
             starTotalSum += review.stars
             count++
         });
 
         const avgStarsPerSpot = starTotalSum / count
-
         spot.avgRating = avgStarsPerSpot
+        if (!spot.avgRating) {
+            spot.avgRating = "No Ratings"
+        }
         delete spot.Reviews
     })
 
@@ -159,6 +161,8 @@ router.get('/current', requireAuth, async (req, res) => {
             spot.SpotImages.forEach(image => {
                 if (image.preview) {
                     spot.previewImage = image.url
+                } if (!image.preview) {
+                    spot.previewImage = "needs an image"
                 }
             })
         }
@@ -206,14 +210,15 @@ router.get('/:spotId', async (req, res) => {
     });
 
     delete spot.Reviews
-    console.log("SpotImage:  ", spot.SpotImages);
-    console.log(starTotalSum)
 
 
     const avgStarsPerSpot = starTotalSum / count;
 
     spot.numReviews = count;
     spot.avgRating = avgStarsPerSpot;
+    if (!spot.avgRating) {
+        spot.avgRating = "No Ratings"
+    }
 
     const SImage = spot.SpotImages;
     SImage.forEach((image) => {
