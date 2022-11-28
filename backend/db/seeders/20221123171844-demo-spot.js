@@ -1,12 +1,11 @@
 'use strict';
 
-const bcrypt = require("bcryptjs");
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {
   options.schema = process.env.SCHEMA;  // define your schema in options object
 }
-
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     options.tableName = 'Spots';
@@ -17,7 +16,6 @@ module.exports = {
         city: "TownsVille",
         state: "California",
         country: "USA",
-        ownerId: 1,
         name: "A-House",
         lat: 420.69,
         lng: 69.42,
@@ -30,7 +28,6 @@ module.exports = {
         city: "BBBB city",
         state: "BBBB state",
         country: " BBBB USA",
-        ownerId: 2,
         name: "B-House",
         lat: 222420.69,
         lng: 22269.420,
@@ -43,7 +40,6 @@ module.exports = {
         city: "CCC city",
         state: "CCC state",
         country: "CCC USA",
-        ownerId: 3,
         name: "C-House",
         lat: 333420.69,
         lng: 33369.420,
@@ -55,7 +51,9 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     options.tableName = 'Spots';
-    // const Op = Sequelize.Op;
-    return queryInterface.bulkDelete(options, {}, {});
+    const Op = Sequelize.Op;
+    return queryInterface.bulkDelete(options, {
+      address: { [Op.in]: ['1748 circle drive', 'BBBB Address', 'CCC Address'] }
+    }, {});
   }
 };

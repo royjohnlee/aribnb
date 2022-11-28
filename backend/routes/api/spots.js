@@ -1,9 +1,53 @@
 const express = require('express');
 const { setTokenCookie, requireAuth } = require('../../utils/auth');
-const { User, Spot, Review, SpotImage } = require('../../db/models');
-const { json, ConnectionRefusedError } = require('sequelize');
+const { User, Spot, Review, SpotImage, ReviewImage } = require('../../db/models');
+
 const router = express.Router();
 
+
+// get Reviews by SpotId
+router.get('/:spotId/reviews', async (req, res) => {
+    const spotId = req.params.spotId
+
+    let spot = await Spot.findByPk(req.params.spotId)
+
+    if (!spot) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    };
+    // console.log("HETOUHNETSHUsn")
+    // console.log(typeof spotId)
+
+    let currReview = await Review.findAll({
+        include: [
+            { model: User },
+            { model: Spot },
+            { model: ReviewImage }
+        ], where: {
+            spotId: +spotId
+        }
+    })
+
+    currReview = JSON.parse(JSON.stringify(currReview))
+
+    currReview.forEach((review) => {
+        delete review.User.username
+
+        delete review.Spot.description
+        delete review.Spot.createdAt
+        delete review.Spot.updatedAt
+
+        review.ReviewImages.forEach((image) => {
+            delete image.reviewId
+            delete image.createdAt
+            delete image.updatedAt
+        });
+    });
+    return res.json({ "Review": currReview })
+});
 
 
 //GET Spots of CURRENT User
@@ -34,7 +78,7 @@ router.get('/current', requireAuth, async (req, res) => {
 
         console.log(spot.Reviews)
         reviewArr.forEach((review) => {
-            starTotalSum += review
+            starTotalSum += review.stars
             count++
         });
 
@@ -93,12 +137,13 @@ router.get('/:spotId', async (req, res) => {
     let starTotalSum = 0;
     let count = 0;
     reviewsArr.forEach((review) => {
-        starTotalSum += review
+        starTotalSum += review.stars
         count++
     });
 
     delete spot.Reviews
     console.log("SpotImage:  ", spot.SpotImages);
+    console.log(starTotalSum)
 
 
     const avgStarsPerSpot = starTotalSum / count;
@@ -188,9 +233,6 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
 
     const spotId = spot.id
 
-    // console.log("===============================================")
-    // console.log(spotId)
-
     const newSpotImage = await SpotImage.create({
         spotId,
         url,
@@ -201,12 +243,58 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
 });
 
 //Creat a Review for a Spot
-router.post('/spots/:spotId/reviews', requireAuth, async (req, res) => {
-    const spot = await Spot.findByPk(req.params.spotId)
+router.post('/:spotId/reviews', requireAuth, async (req, res) => {
     const { review, stars } = req.body
+    const requestArr = [review, stars]
 
-    console.log(spot)
-    console.log(req.body)
+    const spotId = +req.params.spotId //parseInt
+    const userId = req.user.dataValues.id
+    const spot = await Spot.findByPk(spotId)
+
+    const userReview = await Review.findOne({ where: { userId, spotId } })
+    // console.log(spot)
+
+    console.log(req.query.spotId)
+
+    if (!spot) {
+        res.status(404)
+        return res.json({
+            "message": "Spot couldn't be found",
+            "statusCode": 404
+        })
+    }
+
+    if (userReview) {
+        res.status(403)
+        return res.json({
+            "message": "User already has a review for this spot",
+            "statusCode": 403
+        })
+    }
+
+    requestArr.forEach((request) => {
+        if (!request) {
+            res.json({
+                message: "Validation Error",
+                statusCode: 400,
+                errors: {
+                    review: "Review text is required",
+                    stars: "Stars must be an integer from 1 to 5",
+                }
+            })
+        }
+
+    })
+
+
+    const newSpotReview = await Review.create({
+        userId,
+        spotId,
+        review,
+        stars
+    })
+
+    return res.json(newSpotReview)
 })
 
 
@@ -236,6 +324,8 @@ router.post('/', requireAuth, async (req, res) => {
             });
         }
     });
+
+
 
     const newSpot = await Spot.create({
         ownerId: req.user.dataValues.id,

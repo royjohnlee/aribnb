@@ -18,14 +18,14 @@ module.exports = {
       spotId: {
         allowNull: false,
         unique: true,
-        references: { model: 'Spots' },
+        // references: { model: 'Spots' },
         onDelete: 'CASCADE',
         type: Sequelize.INTEGER
       },
       userId: {
         allowNull: false,
         unique: true,
-        references: { model: 'Users' },
+        // references: { model: 'Users' },
         onDelete: 'CASCADE',
         type: Sequelize.INTEGER
       },
@@ -47,7 +47,7 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
-    });
+    }, options);
   },
   async down(queryInterface, Sequelize) {
     options.tableName = "Bookings"

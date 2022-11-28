@@ -111,7 +111,7 @@ router.put('/:reviewId', requireAuth, async (req, res) => {
     if (!reviewTable) {
         res.status(404)
         return res.json({
-            "message": "Spot couldn't be found",
+            "message": "Review couldn't be found",
             "statusCode": 404
         })
     };
