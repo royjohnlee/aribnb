@@ -1,6 +1,7 @@
 const express = require('express');
 const { setTokenCookie, requireAuth, restoreUser } = require('../../utils/auth');
 const { User, Spot, Review, SpotImage, ReviewImage, Booking } = require('../../db/models');
+const { query } = require('express');
 
 
 const router = express.Router();
@@ -232,9 +233,67 @@ router.get('/:spotId', async (req, res) => {
     return res.json(spot);
 })
 
-
 // GET all Spots
 router.get('/', async (req, res) => {
+    let { page, size, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query
+
+    page = parseInt(page);
+    size = parseInt(size);
+
+    if (Number.isNaN(page)) page = 1
+    if (Number.isNaN(size)) size = 20;
+
+    let pagination = {}
+
+    const where = {}
+
+    if (req.query.minLat) query.where.minLat = req.query.minLat;
+    if (req.query.maxLat) query.where.maxLat = req.query.maxLat;
+    if (req.query.minLng) query.where.minLng = req.query.minLng;
+    if (req.query.maxLng) query.where.maxLng = req.query.maxLng;
+    if (req.query.minPrice) {
+        if (req.queryminPrice >= 0) {
+            query.where.minPrice = req.query.minPrice;
+        }
+    }
+
+    if (req.query.maxPrice) {
+        if (req.query.minPrice >= 0) {
+            query.where.minPrice = req.query.minPrice
+        }
+    }
+
+    if (req.query.maxPrice) query.where.maxPrice = req.query.maxPrice;
+
+
+    if (parseInt(page) >= 1 && parseInt(size) >= 1) {
+        if (parseInt(page) > 10) {
+            page = 10
+        }
+        if (parseInt(size) > 20) {
+            size = 20
+        }
+        pagination.limit = size
+        pagination.offset = size * (page - 1)
+    }
+
+    // const page = req.query.page === undefined ? 1 : parseInt(req.query.page);
+    // const size = req.query.size === undefined ? 20 : parseInt(req.query.size);
+    // if (page >= 1 && size >= 1) {
+    //     query.limit = size;
+    //     query.offset = size * (page - 1);
+    // } else {
+    //     res.status(400)
+    //     return res.json({
+    //         "message": "Validation Error",
+    //         "statusCode": 400,
+    //         "errors": {
+    //             "page": "Page must be greater than or equal to 1",
+    //             "size": "Size must be greater than or equal to 1"
+    //         }
+    //     })
+    // }
+
     let spots = await Spot.findAll({
         include: [
             {
@@ -243,8 +302,10 @@ router.get('/', async (req, res) => {
             {
                 model: SpotImage
             }
-        ]
+        ], where,
+        ...pagination
     });
+
 
     let spotListArr = [];
     spots.forEach(spot => {
@@ -279,22 +340,21 @@ router.get('/', async (req, res) => {
         }
         delete spot.SpotImages
     })
-    return res.json({ "Spots": spotListArr })
+
+    return res.json({
+        "Spots": spotListArr,
+        page,
+        size
+    })
 });
 
 
 //Create an Booking based on Spot Id
 router.post('/:spotId/bookings', requireAuth, async (req, res) => {
     const { startDate, endDate } = req.body
-
     const spotId = +req.params.spotId
-
     const spot = await Spot.findByPk(spotId)
-
     let bookings = await Booking.findAll()
-    // console.log(bookings)
-    // console.log(startDate)
-    // console.log(endDate)
 
 
     bookings = JSON.parse(JSON.stringify(bookings))
@@ -320,20 +380,15 @@ router.post('/:spotId/bookings', requireAuth, async (req, res) => {
     };
 
 
+
     for (let i = 0; i < bookings.length; i++) {
-        console.log(bookings[i].startDate, startDate)
-        console.log(bookings[i].startDate >= startDate)
-        console.log(bookings[i].startDate <= startDate)
-        console.log((bookings[i].startDate >= startDate && bookings[i].startDate <= startDate))
+        const bookingListStartDate = new Date(bookings[i].startDate)
+        const bookingListEndDate = new Date(bookings[i].endDate)
 
-        console.log(bookings[i].endDate, endDate)
-        console.log(bookings[i].endDate >= endDate)
-        console.log(bookings[i].endDate <= endDate)
-        console.log(bookings[i].endDate >= endDate && bookings[i].endDate <= endDate)
+        const newBookingStart = new Date(startDate)
+        const newBookingEnd = new Date(endDate)
 
-        console.log("--------------------------------------------")
-
-        if ((bookings[i].startDate >= startDate && bookings[i].startDate <= startDate)) {
+        if (newBookingStart.getTime() >= bookingListStartDate.getTime() && newBookingStart.getTime() <= bookingListEndDate.getTime()) {
             res.status(403)
             return res.json({
                 "message": "Sorry, this spot is already booked for the specified dates",
@@ -342,8 +397,7 @@ router.post('/:spotId/bookings', requireAuth, async (req, res) => {
                     "startDate": "Start date conflicts with an existing booking",
                 }
             })
-        }
-        if ((bookings[i].endDate >= endDate && bookings[i].endDate <= endDate)) {
+        } else if (newBookingEnd.getTime() >= bookingListStartDate.getTime() && newBookingEnd.getTime() <= bookingListEndDate.getTime()) {
             res.status(403)
             return res.json({
                 "message": "Sorry, this spot is already booked for the specified dates",
